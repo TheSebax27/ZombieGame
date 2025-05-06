@@ -1,0 +1,128 @@
+{
+    "player": {
+      "name": "Killer Potato",
+      "health": 100,
+      "max_health": 100,
+      "score": 0,
+      "level": 1,
+      "experience": 0,
+      "level_threshold": 100,
+      "skill_points": 0,
+      "attack_power": 1.0,
+      "defense": 1.0,
+      "critical_chance": 0.05,
+      "speed": 5,
+      "pickup_range": 50
+    },
+    "weapons": [
+      {
+        "name": "Tenedor",
+        "id": "fork",
+        "level": 1,
+        "ammo": 30,
+        "max_ammo": 30,
+        "damage": 25,
+        "reload_time": 15,
+        "fire_rate": 20,
+        "projectile_type": "normal",
+        "projectile_count": 1,
+        "projectile_speed": 12,
+        "unlocked": true
+      },
+      {
+        "name": "Cuchillo",
+        "id": "knife",
+        "level": 1,
+        "ammo": 30,
+        "max_ammo": 30,
+        "damage": 40,
+        "reload_time": 30,
+        "fire_rate": 10,
+        "projectile_type": "rapid",
+        "projectile_count": 1,
+        "projectile_speed": 15,
+        "unlocked": false
+      },
+      {
+        "name": "Cuchara",
+        "id": "spoon",
+        "level": 1,
+        "ammo": 20,
+        "max_ammo": 20,
+        "damage": 75,
+        "reload_time": 40,
+        "fire_rate": 50,
+        "projectile_type": "explosive",
+        "projectile_count": 1,
+        "projectile_speed": 10,
+        "unlocked": false
+      },
+      {
+        "name": "Espátula",
+        "id": "spatula",
+        "level": 1,
+        "ammo": 25,
+        "max_ammo": 25,
+        "damage": 30,
+        "reload_time": 20,
+        "fire_rate": 15,
+        "projectile_type": "spread",
+        "projectile_count": 3,
+        "projectile_speed": 11,
+        "unlocked": false
+      },
+      {
+        "name": "Rodillo",
+        "id": "rolling_pin",
+        "level": 1,
+        "ammo": 15,
+        "max_ammo": 15,
+        "damage": 50,
+        "reload_time": 45,
+        "fire_rate": 60,
+        "projectile_type": "beam",
+        "projectile_count": 1,
+        "projectile_speed": 20,
+        "unlocked": false
+      }
+    ],
+    "completed_levels": [],
+    "current_level": 1,
+    "last_level": 1,
+    "checkpoints": {
+      "1": {
+        "activated": []
+      }
+    },
+    "settings": {
+      "difficulty": "normal",
+      "music_volume": 0.7,
+      "sfx_volume": 0.8,
+      "fullscreen": false,
+      "show_fps": false
+    },
+    "statistics": {
+      "total_kills": 0,
+      "total_deaths": 0,
+      "total_shots_fired": 0,
+      "total_hits": 0,
+      "accuracy": 0,
+      "total_damage_dealt": 0,
+      "total_damage_taken": 0,
+      "total_pickups_collected": 0,
+      "total_time_played": 0,
+      "highest_score": 0,
+      "fastest_level_completion": {}
+    },
+    "achievements": {
+      "first_kill": false,
+      "first_death": false,
+      "level_1_complete": false,
+      "all_weapons_collected": false,
+      "boss_defeated": false,
+      "no_damage_level": false,
+      "100_kills": false,
+      "max_level": false
+    },
+    "save_date": "2023-05-06T12:34:56"
+  }

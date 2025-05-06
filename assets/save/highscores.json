@@ -1,0 +1,121 @@
+{
+    "highscores": [
+      {
+        "name": "KPotato",
+        "score": 5000,
+        "level": 3,
+        "date": "2023-05-05T14:23:18"
+      },
+      {
+        "name": "FryKiller",
+        "score": 4500,
+        "level": 2,
+        "date": "2023-05-04T21:15:42"
+      },
+      {
+        "name": "PotatoRambo",
+        "score": 4200,
+        "level": 3,
+        "date": "2023-05-05T08:30:10"
+      },
+      {
+        "name": "SpudAvenger",
+        "score": 3800,
+        "level": 2,
+        "date": "2023-05-03T19:45:27"
+      },
+      {
+        "name": "TaterTerror",
+        "score": 3500,
+        "level": 2,
+        "date": "2023-05-04T12:12:12"
+      },
+      {
+        "name": "FrenchFryer",
+        "score": 3200,
+        "level": 2,
+        "date": "2023-05-03T15:50:38"
+      },
+      {
+        "name": "MashMonster",
+        "score": 3000,
+        "level": 2,
+        "date": "2023-05-02T22:05:19"
+      },
+      {
+        "name": "SpudSlayer",
+        "score": 2800,
+        "level": 2,
+        "date": "2023-05-03T10:33:45"
+      },
+      {
+        "name": "GratinGunner",
+        "score": 2500,
+        "level": 1,
+        "date": "2023-05-04T17:20:33"
+      },
+      {
+        "name": "HashBrown",
+        "score": 2200,
+        "level": 1,
+        "date": "2023-05-01T11:41:52"
+      }
+    ],
+    "fastest_completions": {
+      "level1": [
+        {
+          "name": "SpeedSpud",
+          "time": 120.5,
+          "date": "2023-05-04T18:30:22"
+        },
+        {
+          "name": "RushRusset",
+          "time": 135.2,
+          "date": "2023-05-05T14:12:31"
+        },
+        {
+          "name": "FastFry",
+          "time": 142.8,
+          "date": "2023-05-03T20:45:17"
+        }
+      ],
+      "level2": [
+        {
+          "name": "QuickTater",
+          "time": 180.3,
+          "date": "2023-05-05T09:15:43"
+        },
+        {
+          "name": "SpeedSpud",
+          "time": 192.6,
+          "date": "2023-05-04T19:22:18"
+        },
+        {
+          "name": "RapidRoast",
+          "time": 205.1,
+          "date": "2023-05-02T21:38:54"
+        }
+      ]
+    },
+    "best_accuracy": [
+      {
+        "name": "SharpShooter",
+        "accuracy": 94.5,
+        "level": 2,
+        "date": "2023-05-05T13:27:41"
+      },
+      {
+        "name": "PrecisionPotato",
+        "accuracy": 92.8,
+        "level": 1,
+        "date": "2023-05-04T16:54:23"
+      },
+      {
+        "name": "AimKing",
+        "accuracy": 91.2,
+        "level": 2,
+        "date": "2023-05-03T11:18:35"
+      }
+    ],
+    "last_updated": "2023-05-06T12:34:56"
+  }

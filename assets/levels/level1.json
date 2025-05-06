@@ -1,0 +1,247 @@
+{
+    "name": "Nivel 1 - Laboratorio Subsuelo 47",
+    "description": "Escapa del laboratorio donde fuiste creado y enfrenta a tus creadores.",
+    "background": "assets/images/backgrounds/game_background.png",
+    "music": "assets/sounds/music/game_music.mp3",
+    "linear": true,
+    "scroll_width": 2400,
+    "player_start": {
+      "x": 100,
+      "y": 300
+    },
+    "exit_point": {
+      "x": 2300,
+      "y": 300
+    },
+    "enemies_count": 15,
+    "spawn_rate": 60,
+    "boss": {
+      "type": "robot_jefe",
+      "position": {
+        "x": 2200,
+        "y": 300
+      }
+    },
+    "checkpoints": [
+      {
+        "id": 1,
+        "x": 800,
+        "y": 300,
+        "dialog_id": "checkpoint1"
+      },
+      {
+        "id": 2,
+        "x": 1600,
+        "y": 300,
+        "dialog_id": "checkpoint2"
+      }
+    ],
+    "spawn_points": [
+      {"x": 400, "y": 100},
+      {"x": 400, "y": 500},
+      {"x": 1000, "y": 150},
+      {"x": 1000, "y": 450},
+      {"x": 1500, "y": 200},
+      {"x": 1500, "y": 400},
+      {"x": 1900, "y": 100},
+      {"x": 1900, "y": 500}
+    ],
+    "obstacles": [
+      {
+        "type": "wall",
+        "x": 300,
+        "y": 0,
+        "width": 50,
+        "height": 200
+      },
+      {
+        "type": "wall",
+        "x": 300,
+        "y": 400,
+        "width": 50,
+        "height": 200
+      },
+      {
+        "type": "table",
+        "x": 500,
+        "y": 250,
+        "width": 100,
+        "height": 100
+      },
+      {
+        "type": "crate",
+        "x": 700,
+        "y": 150,
+        "width": 70,
+        "height": 70
+      },
+      {
+        "type": "crate",
+        "x": 700,
+        "y": 380,
+        "width": 70,
+        "height": 70
+      },
+      {
+        "type": "wall",
+        "x": 900,
+        "y": 0,
+        "width": 50,
+        "height": 200
+      },
+      {
+        "type": "wall",
+        "x": 900,
+        "y": 400,
+        "width": 50,
+        "height": 200
+      },
+      {
+        "type": "barrel",
+        "x": 1100,
+        "y": 200,
+        "width": 60,
+        "height": 60
+      },
+      {
+        "type": "barrel",
+        "x": 1100,
+        "y": 340,
+        "width": 60,
+        "height": 60
+      },
+      {
+        "type": "table",
+        "x": 1300,
+        "y": 100,
+        "width": 120,
+        "height": 80
+      },
+      {
+        "type": "table",
+        "x": 1300,
+        "y": 420,
+        "width": 120,
+        "height": 80
+      },
+      {
+        "type": "wall",
+        "x": 1500,
+        "y": 0,
+        "width": 50,
+        "height": 150
+      },
+      {
+        "type": "wall",
+        "x": 1500,
+        "y": 450,
+        "width": 50,
+        "height": 150
+      },
+      {
+        "type": "crate",
+        "x": 1700,
+        "y": 100,
+        "width": 70,
+        "height": 70
+      },
+      {
+        "type": "crate",
+        "x": 1700,
+        "y": 430,
+        "width": 70,
+        "height": 70
+      },
+      {
+        "type": "barrel",
+        "x": 1800,
+        "y": 200,
+        "width": 60,
+        "height": 60
+      },
+      {
+        "type": "barrel",
+        "x": 1800,
+        "y": 340,
+        "width": 60,
+        "height": 60
+      },
+      {
+        "type": "wall",
+        "x": 2000,
+        "y": 0,
+        "width": 50,
+        "height": 200
+      },
+      {
+        "type": "wall",
+        "x": 2000,
+        "y": 400,
+        "width": 50,
+        "height": 200
+      }
+    ],
+    "pickups": [
+      {
+        "type": "health",
+        "x": 600,
+        "y": 300
+      },
+      {
+        "type": "ammo",
+        "x": 1200,
+        "y": 300
+      },
+      {
+        "type": "speed",
+        "x": 1800,
+        "y": 300
+      }
+    ],
+    "triggers": [
+      {
+        "x": 450,
+        "y": 100,
+        "width": 200,
+        "height": 400,
+        "dialog_id": "encounter_scientist",
+        "one_time": true
+      },
+      {
+        "x": 950,
+        "y": 100,
+        "width": 200,
+        "height": 400,
+        "dialog_id": "find_weapon",
+        "add_weapon": "knife",
+        "one_time": true
+      },
+      {
+        "x": 1900,
+        "y": 100,
+        "width": 200,
+        "height": 400,
+        "dialog_id": "approaching_exit",
+        "one_time": true
+      },
+      {
+        "x": 2100,
+        "y": 100,
+        "width": 200,
+        "height": 400,
+        "dialog_id": "pre_boss",
+        "one_time": true
+      }
+    ],
+    "boss_triggers": [
+      {
+        "health_threshold": 50,
+        "dialog_id": "boss_phase2"
+      },
+      {
+        "health_threshold": 0,
+        "dialog_id": "boss_defeat"
+      }
+    ],
+    "level_complete_dialog": "level_complete"
+  }

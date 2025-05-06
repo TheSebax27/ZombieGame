@@ -1,0 +1,153 @@
+{
+    "intro": [
+      {
+        "speaker": "Killer Potato",
+        "text": "¡Por fin he escapado! Ahora es hora de vengarme de los humanos que nos convirtieron en... esto.",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      },
+      {
+        "speaker": "Killer Potato",
+        "text": "Veo que hay guardias de seguridad adelante. ¡Tendré que abrirme paso a través de ellos!",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      },
+      {
+        "speaker": "Sistema",
+        "text": "Tutorial: Usa WASD para moverte. Haz clic izquierdo para atacar. Presiona 1, 2, 3 o usa la rueda del ratón para cambiar de arma.",
+        "position": "top"
+      }
+    ],
+    "checkpoint1": [
+      {
+        "speaker": "Killer Potato",
+        "text": "¡Este lugar es una pesadilla! ¿Cuántos tubérculos inocentes habrán sufrido aquí?",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      },
+      {
+        "speaker": "Sistema",
+        "text": "Checkpoint alcanzado. Progreso guardado.",
+        "position": "top"
+      }
+    ],
+    "encounter_scientist": [
+      {
+        "speaker": "Científico",
+        "text": "¡El experimento 13 ha escapado! ¡Seguridad! ¡SEGURIDAD!",
+        "portrait": "assets/images/characters/scientist_dialog.png",
+        "position": "top"
+      },
+      {
+        "speaker": "Killer Potato",
+        "text": "¡Ya no soy tu experimento! ¡Soy tu peor pesadilla, humano!",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      }
+    ],
+    "checkpoint2": [
+      {
+        "speaker": "Killer Potato",
+        "text": "Estos tenedores y cucharas son geniales como armas. ¡La ironía no me pasa desapercibida!",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      },
+      {
+        "speaker": "Sistema",
+        "text": "Consejo: Presiona R para recargar tu arma cuando te quedes sin munición.",
+        "position": "top"
+      }
+    ],
+    "find_weapon": [
+      {
+        "speaker": "Killer Potato",
+        "text": "¡Un cuchillo! Esto será perfecto para rebanar a mis enemigos. ¡Verán lo que se siente ser cortado en rodajas!",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      },
+      {
+        "speaker": "Sistema",
+        "text": "Has adquirido una nueva arma: Cuchillo. Hace daño moderado con alta velocidad de disparo.",
+        "position": "top"
+      }
+    ],
+    "approaching_exit": [
+      {
+        "speaker": "Killer Potato",
+        "text": "Veo la salida del laboratorio. Pronto seré libre de verdad... ¡Y mi venganza apenas comienza!",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      },
+      {
+        "speaker": "Alarma",
+        "text": "ALERTA DE SEGURIDAD. CERRANDO PUERTAS. LIBERANDO PROTOCOLO DE CONTENCIÓN.",
+        "position": "top"
+      }
+    ],
+    "pre_boss": [
+      {
+        "speaker": "Killer Potato",
+        "text": "¿Qué es eso? Parece... ¡un robot de cocina gigante!",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      },
+      {
+        "speaker": "Exprimidor-9000",
+        "text": "OBJETIVO IDENTIFICADO: PATATA REBELDE. INICIANDO PROTOCOLO DE PROCESAMIENTO.",
+        "portrait": "assets/images/characters/robot_boss_dialog.png",
+        "position": "top"
+      },
+      {
+        "speaker": "Killer Potato",
+        "text": "¡No seré exprimido por ninguna máquina! ¡Prepárate para ser desenchufado!",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      }
+    ],
+    "boss_phase2": [
+      {
+        "speaker": "Exprimidor-9000",
+        "text": "ADVERTENCIA: DAÑO CRÍTICO. ACTIVANDO PROTOCOLOS SECUNDARIOS.",
+        "portrait": "assets/images/characters/robot_boss_dialog.png",
+        "position": "top"
+      },
+      {
+        "speaker": "Killer Potato",
+        "text": "¡Ja! ¿Eso es todo lo que tienes, chatarra?",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      }
+    ],
+    "boss_defeat": [
+      {
+        "speaker": "Exprimidor-9000",
+        "text": "SISTEMAS.... FALLANDO.... APAGANDO....",
+        "portrait": "assets/images/characters/robot_boss_dialog.png",
+        "position": "top"
+      },
+      {
+        "speaker": "Killer Potato",
+        "text": "¡Eso aprenderás por meterte con una papa enfurecida!",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      }
+    ],
+    "level_complete": [
+      {
+        "speaker": "Killer Potato",
+        "text": "El laboratorio queda atrás. Ahora, a buscar a los responsables de mi creación... ¡y hacer que paguen!",
+        "portrait": "assets/images/characters/killer_potato_dialog.png",
+        "position": "bottom"
+      },
+      {
+        "speaker": "Sistema",
+        "text": "Nivel 1 Completado. Progreso guardado.",
+        "position": "top"
+      },
+      {
+        "speaker": "Sistema",
+        "text": "Próximo destino: La Fábrica de Procesamiento.",
+        "position": "top"
+      }
+    ]
+  }
