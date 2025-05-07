@@ -5,9 +5,13 @@ Un juego de acción 2D donde una papa mutante busca vengarse de la humanidad.
 Desarrollado por: Juan Sebastian Silva Piñeros
 """
 
-import pygame
 import sys
 import os
+
+# Asegurar que estamos en el directorio correcto para importaciones relativas
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
 
 # Asegurarnos de que existe la estructura de directorios adecuada
 def ensure_directories():
@@ -31,15 +35,17 @@ def ensure_directories():
     ]
     
     for directory in directories:
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-            print(f"Creado directorio: {directory}")
+        full_path = os.path.join(parent_dir, directory)
+        if not os.path.exists(full_path):
+            os.makedirs(full_path)
+            print(f"Creado directorio: {full_path}")
 
 # Comprobar si existe archivo de configuración, si no, crearlo
 def ensure_config():
-    config_file = "config/settings.py"
+    config_file = os.path.join(parent_dir, "config/settings.py")
     if not os.path.exists(config_file):
         # Crear archivo de configuración predeterminado
+        os.makedirs(os.path.dirname(config_file), exist_ok=True)
         with open(config_file, 'w') as f:
             f.write('''"""
 Configuración global para el juego Killer Potato
@@ -84,49 +90,38 @@ def initialize_game():
     ensure_directories()
     ensure_config()
     
-    # Importar configuración
     try:
-        from config.settings import WIDTH, HEIGHT, TITLE, MUSIC_VOLUME, SFX_VOLUME
-    except ImportError:
-        print("Error al importar configuración. Usando valores predeterminados.")
-        WIDTH, HEIGHT = 800, 600
-        TITLE = "Killer Potato: La Venganza de la Papa"
-        MUSIC_VOLUME, SFX_VOLUME = 0.7, 0.8
-    
-    # Inicializar Pygame
-    pygame.init()
-    pygame.mixer.init()
-    pygame.font.init()
-    
-    # Configurar volumen
-    pygame.mixer.music.set_volume(MUSIC_VOLUME)
-    
-    # Mostrar pantalla de carga mientras se importan módulos
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption(TITLE)
-    
-    # Dibujar pantalla de carga básica
-    screen.fill((0, 0, 0))
-    font = pygame.font.SysFont('Arial', 24)
-    loading_text = font.render("Cargando...", True, (255, 255, 255))
-    screen.blit(loading_text, (WIDTH//2 - loading_text.get_width()//2, HEIGHT//2))
-    pygame.display.flip()
-    
-    # Importar menú (y otros módulos necesarios)
-    try:
-        import menu
-        print("Módulos cargados correctamente.")
+        # Importar módulos necesarios
+        import pygame
+        print("Pygame importado correctamente.")
+        
+        # Inicializar Pygame
+        pygame.init()
+        pygame.mixer.init()
+        pygame.font.init()
+        
+        # Importar el módulo de menú
+        from src import menu
+        print("¡Juego inicializado correctamente!")
+        
+        # Iniciar el menú principal
+        menu.main()
+        
     except ImportError as e:
         print(f"Error al importar módulos: {e}")
-        error_text = font.render(f"Error: {e}", True, (255, 0, 0))
-        screen.blit(error_text, (WIDTH//2 - error_text.get_width()//2, HEIGHT//2 + 40))
-        pygame.display.flip()
-        pygame.time.delay(5000)
-        return
-    
-    # Iniciar el menú principal
-    menu.main()
+        print("\nPara solucionar este problema, asegúrate de tener instalado pygame:")
+        print("  pip install pygame")
+        input("\nPresiona Enter para salir...")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Ocurrió un error: {e}")
+        input("\nPresiona Enter para salir...")
+        sys.exit(1)
 
-# Punto de entrada principal
+# Punto de entrada principal con manejo de excepciones
 if __name__ == "__main__":
-    initialize_game()
+    try:
+        initialize_game()
+    except Exception as e:
+        print(f"Error al iniciar el juego: {e}")
+        input("\nPresiona Enter para salir...")
