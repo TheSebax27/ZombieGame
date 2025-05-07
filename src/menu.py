@@ -263,7 +263,8 @@ def story_screen():
             'y': random.randint(-500, -50),
             'speed': random.uniform(0.5, 2.0),
             'size': random.randint(2, 6),
-            'color': (random.randint(150, 0, 0), 0, 0)  # Rojo para la salsa
+           'color': (random.randint(150, 255), 0, 0)  # Rojo para la salsa
+
         }
         sauce_drops.append(drop)
     
