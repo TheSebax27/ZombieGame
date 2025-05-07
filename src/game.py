@@ -13,6 +13,7 @@ sys.path.append(parent_dir)
 # Inicializar Pygame
 pygame.init()
 pygame.font.init()
+pygame.mixer.init()  # Inicializar mezclador de audio
 
 # Configuración de pantalla
 try:
@@ -73,677 +74,6 @@ def load_image(path, scale=None):
         pygame.draw.line(surface, (POTATO_BROWN), (50, 0), (0, 50), 2)
         return surface
 
-# Clase para diálogos y textos narrativos
-class DialogBox:
-    def __init__(self):
-        self.visible = False
-        self.text = ""
-        self.speaker = ""
-        self.position = "bottom"  # bottom, top, left, right
-        self.width = WIDTH - 100
-        self.height = 150
-        self.x = 50
-        self.y = HEIGHT - 200
-        self.text_color = WHITE
-        self.bg_color = (0, 0, 0, 180)
-        self.border_color = POTATO_BROWN
-        self.font = font
-        self.portrait = None
-        self.display_index = 0
-        self.display_speed = 2
-        self.display_counter = 0
-        self.next_dialog = None
-        self.complete = False
-        
-    def set_dialog(self, text, speaker="", portrait=None, position="bottom", next_dialog=None):
-        self.text = text
-        self.speaker = speaker
-        self.position = position
-        self.display_index = 0
-        self.display_counter = 0
-        self.complete = False
-        self.next_dialog = next_dialog
-        
-        if portrait:
-            try:
-                self.portrait = load_image(portrait, (100, 100))
-            except:
-                self.portrait = None
-        
-        # Ajustar posición según el parámetro
-        if position == "bottom":
-            self.x = 50
-            self.y = HEIGHT - 200
-            self.width = WIDTH - 100
-        elif position == "top":
-            self.x = 50
-            self.y = 50
-            self.width = WIDTH - 100
-        elif position == "left":
-            self.x = 50
-            self.y = (HEIGHT - self.height) // 2
-            self.width = WIDTH // 2 - 75
-        elif position == "right":
-            self.x = WIDTH // 2 + 25
-            self.y = (HEIGHT - self.height) // 2
-            self.width = WIDTH // 2 - 75
-        
-        self.visible = True
-    
-    def update(self):
-        if not self.visible:
-            return
-            
-        if not self.complete:
-            self.display_counter += 1
-            if self.display_counter >= self.display_speed:
-                self.display_counter = 0
-                self.display_index += 1
-                
-                if self.display_index >= len(self.text):
-                    self.complete = True
-                    self.display_index = len(self.text)
-    
-    def draw(self, surface):
-        if not self.visible:
-            return
-            
-        # Dibujar el fondo del cuadro de diálogo
-        dialog_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        dialog_surface.fill(self.bg_color)
-        
-        # Borde
-        pygame.draw.rect(dialog_surface, self.border_color, (0, 0, self.width, self.height), 2, border_radius=10)
-        
-        # Dibujar retrato si existe
-        if self.portrait:
-            surface.blit(self.portrait, (self.x + 10, self.y + (self.height - self.portrait.get_height()) // 2))
-            text_start_x = 120
-        else:
-            text_start_x = 20
-        
-        # Dibujar nombre del hablante
-        if self.speaker:
-            speaker_surface = self.font.render(self.speaker, True, RED)
-            dialog_surface.blit(speaker_surface, (text_start_x, 10))
-            text_start_y = 40
-        else:
-            text_start_y = 20
-        
-        # Dibujar texto con animación de escritura
-        displayed_text = self.text[:self.display_index]
-        
-        # Ajuste de texto para que no se salga del cuadro
-        max_width = self.width - text_start_x - 20
-        words = displayed_text.split(' ')
-        lines = []
-        current_line = ""
-        
-        for word in words:
-            test_line = current_line + word + " "
-            if self.font.size(test_line)[0] < max_width:
-                current_line = test_line
-            else:
-                lines.append(current_line)
-                current_line = word + " "
-        lines.append(current_line)
-        
-        # Dibujar líneas de texto
-        for i, line in enumerate(lines):
-            text_surface = self.font.render(line, True, self.text_color)
-            dialog_surface.blit(text_surface, (text_start_x, text_start_y + i * 30))
-        
-        # Indicador de continuar
-        if self.complete:
-            pygame.draw.polygon(dialog_surface, WHITE, 
-                              [(self.width - 30, self.height - 20), 
-                               (self.width - 10, self.height - 20), 
-                               (self.width - 20, self.height - 10)])
-        
-        # Dibujar el cuadro de diálogo en la superficie principal
-        surface.blit(dialog_surface, (self.x, self.y))
-    
-    def handle_input(self, event):
-        if not self.visible:
-            return False
-            
-        if event.type == KEYDOWN:
-            if event.key == K_SPACE or event.key == K_RETURN or event.key == K_z:
-                if self.complete:
-                    if self.next_dialog:
-                        dialog_text, speaker, portrait = self.next_dialog
-                        self.set_dialog(dialog_text, speaker, portrait)
-                        return True
-                    else:
-                        self.visible = False
-                        return True
-                else:
-                    # Mostrar todo el texto inmediatamente
-                    self.display_index = len(self.text)
-                    self.complete = True
-                    return True
-        
-        return False
-
-# Clase para efectos de disparo/ataque
-class AttackEffect:
-    def __init__(self, x, y, angle):
-        self.x = x
-        self.y = y
-        self.angle = angle
-        self.lifetime = 5  # Duración del efecto en frames
-        self.image = load_image("assets/images/items/attack_effect.png", (30, 15))
-        self.rotated_image = pygame.transform.rotate(self.image, -math.degrees(angle))
-        self.rect = self.rotated_image.get_rect(center=(x, y))
-    
-    def update(self):
-        self.lifetime -= 1
-    
-    def draw(self, screen):
-        screen.blit(self.rotated_image, self.rect.topleft)
-    
-    def is_finished(self):
-        return self.lifetime <= 0
-
-# Clase Jugador (Killer Potato)
-class Player:
-    def __init__(self):
-        # Cargar dificultad
-        difficulty_config = DIFFICULTY_SETTINGS.get(DIFFICULTY, DIFFICULTY_SETTINGS["normal"])
-        
-        self.x = WIDTH // 2
-        self.y = HEIGHT // 2
-        self.radius = 20
-        self.speed = 5
-        self.health = difficulty_config["player_health"]
-        self.max_health = difficulty_config["player_health"]
-        self.damage_multiplier = difficulty_config["player_damage_multiplier"]
-        self.score = 0
-        self.level = 1
-        self.current_weapon = 0
-        self.facing_right = True
-        
-        # Cargar imágenes del jugador
-        self.image_right = load_image("assets/images/characters/killer_potato_right.png", (50, 50))
-        self.image_left = load_image("assets/images/characters/killer_potato_left.png", (50, 50))
-        
-        # Configurar armas
-        self.weapons = [
-            {
-                "name": "Tenedor", 
-                "damage": 25, 
-                "ammo": 30, 
-                "max_ammo": 30, 
-                "reload_time": 15, 
-                "reload_counter": 0, 
-                "fire_rate": 20, 
-                "fire_counter": 0,
-                "image_right": load_image("assets/images/items/fork_right.png", (40, 20)),
-                "image_left": load_image("assets/images/items/fork_left.png", (40, 20)),
-                "hud_image": load_image("assets/images/ui/fork_hud.png", (80, 40))
-            },
-            {
-                "name": "Cuchara", 
-                "damage": 75, 
-                "ammo": 20, 
-                "max_ammo": 20, 
-                "reload_time": 40, 
-                "reload_counter": 0, 
-                "fire_rate": 50, 
-                "fire_counter": 0,
-                "image_right": load_image("assets/images/items/spoon_right.png", (50, 20)),
-                "image_left": load_image("assets/images/items/spoon_left.png", (50, 20)),
-                "hud_image": load_image("assets/images/ui/spoon_hud.png", (80, 40))
-            },
-            {
-                "name": "Cuchillo", 
-                "damage": 40, 
-                "ammo": 30, 
-                "max_ammo": 30, 
-                "reload_time": 30, 
-                "reload_counter": 0, 
-                "fire_rate": 10, 
-                "fire_counter": 0,
-                "image_right": load_image("assets/images/items/knife_right.png", (60, 20)),
-                "image_left": load_image("assets/images/items/knife_left.png", (60, 20)),
-                "hud_image": load_image("assets/images/ui/knife_hud.png", (80, 40))
-            },
-        ]
-        self.is_reloading = False
-        self.can_shoot = True
-        
-        # Cargar HUD
-        self.health_bar = load_image("assets/images/ui/health_bar.png", (250, 70))
-        self.ammo_bar = load_image("assets/images/ui/ammo_bar.png", (250, 70))
-        self.score_display = load_image("assets/images/ui/score_display.png", (150, 50))
-        
-        # Obtener rectángulo para colisiones
-        self.rect = self.image_right.get_rect()
-        self.update_rect()
-
-    def update_rect(self):
-        self.rect.center = (self.x, self.y)
-
-    def draw(self, screen):
-        # Determinar qué imagen del jugador usar según la dirección
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        self.facing_right = mouse_x >= self.x
-        player_image = self.image_right if self.facing_right else self.image_left
-        
-        # Dibujar jugador
-        screen.blit(player_image, (self.x - player_image.get_width() // 2, self.y - player_image.get_height() // 2))
-        
-        # Dibujar arma actual
-        weapon = self.weapons[self.current_weapon]
-        weapon_img = weapon["image_right"] if self.facing_right else weapon["image_left"]
-        
-        # Calcular ángulo de rotación basado en la posición del ratón
-        angle = math.degrees(math.atan2(mouse_y - self.y, mouse_x - self.x))
-        if not self.facing_right:
-            angle += 180
-        rotated_weapon = pygame.transform.rotate(weapon_img, -angle)
-        
-        # Posición del arma (desplazada desde el centro del jugador)
-        offset_x = math.cos(math.radians(angle)) * 20
-        offset_y = math.sin(math.radians(angle)) * 20
-        weapon_pos = (self.x + offset_x - rotated_weapon.get_width() // 2, 
-                     self.y + offset_y - rotated_weapon.get_height() // 2)
-        
-        screen.blit(rotated_weapon, weapon_pos)
-    
-    def move(self, dx, dy, obstacles=None, level_bounds=None):
-        # Calcular nueva posición
-        new_x = self.x + dx * self.speed
-        new_y = self.y + dy * self.speed
-        
-        # Verificar límites del nivel si se proporcionan
-        if level_bounds:
-            min_x, min_y, max_x, max_y = level_bounds
-            new_x = max(min_x + self.radius, min(new_x, max_x - self.radius))
-            new_y = max(min_y + self.radius, min(new_y, max_y - self.radius))
-        else:
-            # Limitar movimiento dentro de la pantalla
-            new_x = max(self.radius, min(new_x, WIDTH - self.radius))
-            new_y = max(self.radius, min(new_y, HEIGHT - self.radius))
-        
-        # Verificar colisiones con obstáculos
-        if obstacles:
-            # Verificar si la nueva posición colisiona con algún obstáculo
-            new_rect = pygame.Rect(0, 0, self.rect.width, self.rect.height)
-            new_rect.center = (new_x, new_y)
-            
-            for obstacle in obstacles:
-                if new_rect.colliderect(obstacle.rect):
-                    # Ajustar posición para evitar la colisión
-                    # Intentar mover solo en X si es posible
-                    x_only_rect = pygame.Rect(0, 0, self.rect.width, self.rect.height)
-                    x_only_rect.center = (new_x, self.y)
-                    
-                    if not x_only_rect.colliderect(obstacle.rect):
-                        new_y = self.y
-                    else:
-                        # Intentar mover solo en Y si es posible
-                        y_only_rect = pygame.Rect(0, 0, self.rect.width, self.rect.height)
-                        y_only_rect.center = (self.x, new_y)
-                        
-                        if not y_only_rect.colliderect(obstacle.rect):
-                            new_x = self.x
-                        else:
-                            # Si no se puede mover en ninguna dirección, mantener posición actual
-                            new_x = self.x
-                            new_y = self.y
-        
-        # Actualizar posición
-        self.x = new_x
-        self.y = new_y
-        self.update_rect()
-    
-    def attack(self):
-        if self.is_reloading or not self.can_shoot:
-            return None, None
-        
-        weapon = self.weapons[self.current_weapon]
-        if weapon["ammo"] <= 0:
-            self.reload()
-            return None, None
-        
-        weapon["ammo"] -= 1
-        self.can_shoot = False
-        weapon["fire_counter"] = weapon["fire_rate"]
-        
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        angle = math.atan2(mouse_y - self.y, mouse_x - self.x)
-        
-        # Posición para el efecto de ataque (delante del arma)
-        effect_distance = 30
-        effect_x = self.x + math.cos(angle) * effect_distance
-        effect_y = self.y + math.sin(angle) * effect_distance
-        
-        # Crear efectos
-        projectile = Projectile(self.x, self.y, angle, weapon["damage"] * self.damage_multiplier)
-        attack_effect = AttackEffect(effect_x, effect_y, angle)
-        
-        # Reproducir sonido de ataque
-        try:
-            weapon_sound_path = f"assets/sounds/sfx/{weapon['name'].lower()}_attack.wav"
-            attack_sound = pygame.mixer.Sound(weapon_sound_path)
-            attack_sound.play()
-        except:
-            pass
-            
-        return projectile, attack_effect
-    
-    def reload(self):
-        weapon = self.weapons[self.current_weapon]
-        if weapon["ammo"] == weapon["max_ammo"] or self.is_reloading:
-            return
-        
-        self.is_reloading = True
-        weapon["reload_counter"] = weapon["reload_time"]
-        
-        # Reproducir sonido de recarga
-        try:
-            reload_sound = pygame.mixer.Sound("assets/sounds/sfx/reload.wav")
-            reload_sound.play()
-        except:
-            pass
-    
-    def update(self):
-        weapon = self.weapons[self.current_weapon]
-        
-        # Actualizar recarga
-        if self.is_reloading:
-            weapon["reload_counter"] -= 1
-            if weapon["reload_counter"] <= 0:
-                weapon["ammo"] = weapon["max_ammo"]
-                self.is_reloading = False
-        
-        # Actualizar cadencia de disparo
-        if not self.can_shoot:
-            weapon["fire_counter"] -= 1
-            if weapon["fire_counter"] <= 0:
-                self.can_shoot = True
-    
-    def switch_weapon(self, direction):
-        self.current_weapon = (self.current_weapon + direction) % len(self.weapons)
-        self.is_reloading = False
-    
-    def take_damage(self, damage):
-        self.health -= damage
-        if self.health < 0:
-            self.health = 0
-        
-        # Reproducir sonido de daño
-        try:
-            hurt_sound = pygame.mixer.Sound("assets/sounds/sfx/player_hurt.wav")
-            hurt_sound.play()
-        except:
-            pass
-    
-    def draw_hud(self, screen, enemies_to_spawn=0, enemies_count=0):
-        # Barra de vida
-        screen.blit(self.health_bar, (20, 20))
-        health_text = font.render(f"SALUD", True, WHITE)
-        screen.blit(health_text, (30, 25))
-        
-        # Dibujar barra de salud
-        health_width = 150 * (self.health / self.max_health)
-        health_rect = pygame.Rect(70, 50, health_width, 25)
-        
-        # Color según porcentaje de vida
-        if self.health > self.max_health * 0.7:
-            health_color = GREEN
-        elif self.health > self.max_health * 0.3:
-            health_color = (255, 255, 0)  # Amarillo
-        else:
-            health_color = RED
-            
-        pygame.draw.rect(screen, health_color, health_rect)
-        
-        # Información de arma y munición
-        weapon = self.weapons[self.current_weapon]
-        screen.blit(self.ammo_bar, (20, 100))
-        
-        # Dibujar icono del arma actual en el HUD
-        screen.blit(weapon["hud_image"], (30, 110))
-        
-        # Mostrar munición
-        ammo_text = font.render(f"{weapon['ammo']}/{weapon['max_ammo']}", True, WHITE)
-        screen.blit(ammo_text, (150, 125))
-        
-        if self.is_reloading:
-            reload_text = font.render("RECARGANDO", True, WHITE)
-            screen.blit(reload_text, (150, 100))
-        
-        # Puntuación
-        screen.blit(self.score_display, (WIDTH - 170, 20))
-        score_text = font.render(f"{self.score}", True, DARK_RED)
-        screen.blit(score_text, (WIDTH - 110, 35))
-        
-        # Información de nivel
-        level_text = font.render(f"NIVEL: {self.level}", True, WHITE)
-        screen.blit(level_text, (WIDTH - 150, 80))
-        
-        # Mostrar contador de enemigos
-        if enemies_count > 0:
-            enemies_left = enemies_to_spawn + enemies_count
-            progress = int(100 - (enemies_left / (enemies_left + 1) * 100))
-            enemies_text = font.render(f"ENEMIGOS: {enemies_left} - PROGRESO: {progress}%", True, WHITE)
-            screen.blit(enemies_text, (WIDTH - 350, 110))
-
-# Clase Proyectil
-class Projectile:
-    def __init__(self, x, y, angle, damage):
-        self.x = x
-        self.y = y
-        self.speed = 12
-        self.dx = math.cos(angle) * self.speed
-        self.dy = math.sin(angle) * self.speed
-        self.radius = 5
-        self.damage = damage
-        self.angle = angle
-        
-        # Cargar imagen de proyectil
-        self.image = load_image("assets/images/items/projectile.png", (12, 6))
-        self.angle_degrees = math.degrees(angle)
-        self.rotated_image = pygame.transform.rotate(self.image, -self.angle_degrees)
-        self.rect = self.rotated_image.get_rect(center=(self.x, self.y))
-    
-    def update(self):
-        self.x += self.dx
-        self.y += self.dy
-        self.rect.center = (self.x, self.y)
-    
-    def draw(self, screen):
-        screen.blit(self.rotated_image, self.rect.topleft)
-        
-        # Efecto de estela (opcional)
-        trail_length = 3
-        for i in range(1, trail_length + 1):
-            alpha = 200 - i * 60  # La estela se desvanece
-            if alpha > 0:
-                trail_pos = (int(self.x - self.dx * i * 0.5), int(self.y - self.dy * i * 0.5))
-                pygame.draw.circle(screen, (255, 200, 0, alpha), trail_pos, self.radius - i)
-    
-    def is_offscreen(self):
-        return (self.x < 0 or self.x > WIDTH or self.y < 0 or self.y > HEIGHT)
-
-# Clase Enemigo
-class Enemy:
-    def __init__(self, level, enemy_type="human"):
-        # Aplicar configuración de dificultad
-        difficulty_config = DIFFICULTY_SETTINGS.get(DIFFICULTY, DIFFICULTY_SETTINGS["normal"])
-        
-        self.radius = 20
-        base_speed = 1 + level * 0.2
-        self.speed = base_speed * difficulty_config["enemy_speed_multiplier"]
-        base_health = 50 + level * 10
-        self.health = base_health * difficulty_config["enemy_health_multiplier"]
-        self.max_health = self.health
-        base_damage = 5 + level
-        self.damage = base_damage * difficulty_config["enemy_damage_multiplier"]
-        self.attack_cooldown = 50
-        self.attack_counter = 0
-        self.facing_right = True
-        self.hit_effect = 0  # Contador para efecto de daño
-        self.enemy_type = enemy_type
-        
-        # Cargar imágenes del enemigo según tipo
-        if enemy_type == "human":
-            self.image_right = load_image("assets/images/characters/human_right.png", (50, 50))
-            self.image_left = load_image("assets/images/characters/human_left.png", (50, 50))
-        elif enemy_type == "robot":
-            self.image_right = load_image("assets/images/characters/robot_right.png", (60, 60))
-            self.image_left = load_image("assets/images/characters/robot_left.png", (60, 60))
-            self.health += 30  # Robots más resistentes
-            self.speed -= 0.3  # Robots más lentos
-        elif enemy_type == "chef":
-            self.image_right = load_image("assets/images/characters/chef_right.png", (55, 55))
-            self.image_left = load_image("assets/images/characters/chef_left.png", (55, 55))
-            self.damage += 10  # Chef hace más daño
-        
-        # Posición inicial (fuera de la pantalla)
-        side = random.randint(0, 3)
-        if side == 0:  # Superior
-            self.x = random.randint(0, WIDTH)
-            self.y = -self.radius
-        elif side == 1:  # Derecha
-            self.x = WIDTH + self.radius
-            self.y = random.randint(0, HEIGHT)
-        elif side == 2:  # Inferior
-            self.x = random.randint(0, WIDTH)
-            self.y = HEIGHT + self.radius
-        else:  # Izquierda
-            self.x = -self.radius
-            self.y = random.randint(0, HEIGHT)
-            
-        # Obtener rectángulo para colisiones
-        self.rect = self.image_right.get_rect()
-        self.update_rect()
-        
-    def update_rect(self):
-        self.rect.center = (self.x, self.y)
-    
-    def update(self, player_x, player_y, obstacles=None):
-        # Calcular dirección hacia el jugador
-        dx = player_x - self.x
-        dy = player_y - self.y
-        dist = math.sqrt(dx**2 + dy**2)
-        
-        if dist > 0:
-            dx /= dist
-            dy /= dist
-        
-        # Calcular nueva posición
-        new_x = self.x + dx * self.speed
-        new_y = self.y + dy * self.speed
-        
-        # Verificar colisiones con obstáculos
-        if obstacles:
-            # Crear rectángulo para la nueva posición
-            new_rect = pygame.Rect(0, 0, self.rect.width, self.rect.height)
-            new_rect.center = (new_x, new_y)
-            
-            # Verificar colisión con cada obstáculo
-            for obstacle in obstacles:
-                if new_rect.colliderect(obstacle.rect):
-                    # Intentar mover solo en X si es posible
-                    x_only_rect = pygame.Rect(0, 0, self.rect.width, self.rect.height)
-                    x_only_rect.center = (new_x, self.y)
-                    
-                    if not x_only_rect.colliderect(obstacle.rect):
-                        new_y = self.y
-                    else:
-                        # Intentar mover solo en Y si es posible
-                        y_only_rect = pygame.Rect(0, 0, self.rect.width, self.rect.height)
-                        y_only_rect.center = (self.x, new_y)
-                        
-                        if not y_only_rect.colliderect(obstacle.rect):
-                            new_x = self.x
-                        else:
-                            # Si no se puede mover en ninguna dirección, buscar otra ruta
-                            # Girar 90 grados en una dirección aleatoria
-                            angle = math.atan2(dy, dx) + (math.pi/2 if random.random() > 0.5 else -math.pi/2)
-                            new_x = self.x + math.cos(angle) * self.speed
-                            new_y = self.y + math.sin(angle) * self.speed
-        
-        # Actualizar posición
-        self.x = new_x
-        self.y = new_y
-        
-        # Actualizar dirección de vista
-        self.facing_right = dx > 0
-        
-        # Actualizar rectángulo
-        self.update_rect()
-        
-        # Actualizar contador de ataque
-        if self.attack_counter > 0:
-            self.attack_counter -= 1
-            
-        # Actualizar efecto de daño
-        if self.hit_effect > 0:
-            self.hit_effect -= 1
-    
-    def draw(self, screen):
-        # Seleccionar imagen según dirección
-        enemy_image = self.image_right if self.facing_right else self.image_left
-        
-        # Aplicar efecto de daño (parpadeo rojo)
-        if self.hit_effect > 0:
-            # Crear una copia de la imagen para modificarla
-            damaged_image = enemy_image.copy()
-            damaged_image.fill((255, 0, 0, 128), special_flags=pygame.BLEND_RGBA_MULT)
-            screen.blit(damaged_image, (self.x - enemy_image.get_width() // 2, self.y - enemy_image.get_height() // 2))
-        else:
-            # Dibujar enemigo normal
-            screen.blit(enemy_image, (self.x - enemy_image.get_width() // 2, self.y - enemy_image.get_height() // 2))
-        
-        # Barra de vida (siempre visible)
-        bar_width = 40
-        health_percentage = max(0, self.health / self.max_health)
-        bar_height = 5
-        bar_y = self.y - self.radius - 10
-        
-        # Fondo de la barra (rojo)
-        pygame.draw.rect(screen, RED, (self.x - bar_width//2, bar_y, bar_width, bar_height))
-        # Parte de salud (verde)
-        pygame.draw.rect(screen, GREEN, (self.x - bar_width//2, bar_y, bar_width * health_percentage, bar_height))
-        # Borde de la barra
-        pygame.draw.rect(screen, BLACK, (self.x - bar_width//2, bar_y, bar_width, bar_height), 1)
-    
-    def take_damage(self, damage):
-        self.health -= damage
-        self.hit_effect = 5  # Duración del efecto de daño en frames
-        
-        # Reproducir sonido de daño
-        try:
-            hit_sound = pygame.mixer.Sound("assets/sounds/sfx/enemy_hit.wav")
-            hit_sound.play()
-        except:
-            pass
-    
-    def is_dead(self):
-        if self.health <= 0:
-            # Reproducir sonido de muerte
-            try:
-                death_sound = pygame.mixer.Sound("assets/sounds/sfx/enemy_death.wav")
-                death_sound.play()
-            except:
-                pass
-            return True
-        return False
-    
-    def can_attack(self):
-        return self.attack_counter <= 0
-    
-    def attack(self, player):
-        if self.can_attack():
-            player.take_damage(self.damage)
-            self.attack_counter = self.attack_cooldown
-            return True
-        return False
-
 # Clase para objetos recogibles (power-ups, armas, etc.)
 class Pickup:
     def __init__(self, x, y, pickup_type):
@@ -759,14 +89,20 @@ class Pickup:
         self.lifetime = 600  # 10 segundos a 60 FPS
         
         # Cargar imagen según tipo
-        if pickup_type == "health":
-            self.image = load_image("assets/images/items/health_pickup.png", (30, 30))
-        elif pickup_type == "ammo":
-            self.image = load_image("assets/images/items/ammo_pickup.png", (30, 30))
-        elif pickup_type == "speed":
-            self.image = load_image("assets/images/items/speed_pickup.png", (30, 30))
-        else:
-            self.image = load_image("assets/images/items/generic_pickup.png", (30, 30))
+        try:
+            if pickup_type == "health":
+                self.image = load_image("assets/images/items/health_pickup.png", (30, 30))
+            elif pickup_type == "ammo":
+                self.image = load_image("assets/images/items/ammo_pickup.png", (30, 30))
+            elif pickup_type == "speed":
+                self.image = load_image("assets/images/items/speed_pickup.png", (30, 30))
+            else:
+                self.image = load_image("assets/images/items/generic_pickup.png", (30, 30))
+        except:
+            # Si no se puede cargar la imagen, crear una superficie básica
+            self.image = pygame.Surface((30, 30), pygame.SRCALPHA)
+            color = GREEN if pickup_type == "health" else RED if pickup_type == "ammo" else BLUE
+            pygame.draw.circle(self.image, color, (15, 15), 15)
             
         self.rect = self.image.get_rect(center=(x, y))
     
@@ -780,35 +116,41 @@ class Pickup:
         self.rotation = (self.rotation + self.rotation_speed) % 360
         
         # Actualizar rectángulo
-        self.rect.center = (self.x, self.y + self.bob_offset)
+        if hasattr(self, 'rect'):
+            self.rect.center = (self.x, self.y + self.bob_offset)
         
         # Reducir tiempo de vida
         self.lifetime -= 1
     
     def draw(self, screen):
-        # Rotar imagen
-        rotated_image = pygame.transform.rotate(self.image, self.rotation)
-        rotated_rect = rotated_image.get_rect(center=self.rect.center)
-        
-        # Dibujar pickup
-        screen.blit(rotated_image, rotated_rect.topleft)
-        
-        # Opcional: dibujar brillo alrededor del objeto
-        glow_radius = self.radius + 5 + int(math.sin(pygame.time.get_ticks() / 200) * 3)
-        glow_surface = pygame.Surface((glow_radius*2, glow_radius*2), pygame.SRCALPHA)
-        
-        # Color del brillo según tipo
-        if self.type == "health":
-            glow_color = (255, 0, 0, 50)
-        elif self.type == "ammo":
-            glow_color = (255, 255, 0, 50)
-        elif self.type == "speed":
-            glow_color = (0, 255, 255, 50)
-        else:
-            glow_color = (255, 255, 255, 50)
+        try:
+            # Rotar imagen
+            rotated_image = pygame.transform.rotate(self.image, self.rotation)
+            rotated_rect = rotated_image.get_rect(center=(self.x, self.y + self.bob_offset))
             
-        pygame.draw.circle(glow_surface, glow_color, (glow_radius, glow_radius), glow_radius)
-        screen.blit(glow_surface, (self.x - glow_radius, self.y - glow_radius + self.bob_offset))
+            # Dibujar pickup
+            screen.blit(rotated_image, rotated_rect.topleft)
+            
+            # Opcional: dibujar brillo alrededor del objeto
+            glow_radius = self.radius + 5 + int(math.sin(pygame.time.get_ticks() / 200) * 3)
+            glow_surface = pygame.Surface((glow_radius*2, glow_radius*2), pygame.SRCALPHA)
+            
+            # Color del brillo según tipo
+            if self.type == "health":
+                glow_color = (255, 0, 0, 50)
+            elif self.type == "ammo":
+                glow_color = (255, 255, 0, 50)
+            elif self.type == "speed":
+                glow_color = (0, 255, 255, 50)
+            else:
+                glow_color = (255, 255, 255, 50)
+                
+            pygame.draw.circle(glow_surface, glow_color, (glow_radius, glow_radius), glow_radius)
+            screen.blit(glow_surface, (self.x - glow_radius, self.y - glow_radius + self.bob_offset))
+        except Exception as e:
+            # Método de respaldo para dibujar
+            color = GREEN if self.type == "health" else RED if self.type == "ammo" else BLUE
+            pygame.draw.circle(screen, color, (int(self.x), int(self.y + self.bob_offset)), self.radius)
     
     def is_collected(self, player):
         # Comprobar si el jugador toca el objeto
@@ -831,6 +173,423 @@ class Pickup:
             player.speed += 0.5
             return "Velocidad +0.5"
         return "Objeto recogido"
+
+# Importar diálogos
+try:
+    from src.dialogue import DialogBox, load_dialogues, show_cutscene, show_tutorial
+except ImportError:
+    # Implementación de respaldo si no se pueden importar
+    from dialogue import DialogBox, load_dialogues, show_cutscene, show_tutorial
+except Exception as e:
+    print(f"Error al cargar diálogos: {e}")
+    # Definir clase de respaldo
+    class DialogBox:
+        def __init__(self):
+            self.visible = False
+            self.text = ""
+            self.speaker = ""
+            self.position = "bottom"
+            self.width = WIDTH - 100
+            self.height = 150
+            self.x = 50
+            self.y = HEIGHT - 200
+            self.text_color = WHITE
+            self.bg_color = (0, 0, 0, 180)
+            self.border_color = POTATO_BROWN
+            self.font = font
+            self.portrait = None
+            self.display_index = 0
+            self.display_speed = 2
+            self.display_counter = 0
+            self.next_dialog = None
+            self.complete = False
+            self.dialog_queue = []
+        
+        def set_dialog(self, text, speaker="", portrait=None, position="bottom", next_dialog=None):
+            self.text = text
+            self.speaker = speaker
+            self.position = position
+            self.display_index = 0
+            self.display_counter = 0
+            self.complete = False
+            self.next_dialog = next_dialog
+            self.visible = True
+        
+        def update(self):
+            if not self.visible:
+                return
+                
+            if not self.complete:
+                self.display_counter += 1
+                if self.display_counter >= self.display_speed:
+                    self.display_counter = 0
+                    self.display_index += 1
+                    
+                    if self.display_index >= len(self.text):
+                        self.complete = True
+                        self.display_index = len(self.text)
+        
+        def draw(self, surface):
+            if not self.visible:
+                return
+                
+            # Dibujar el fondo del cuadro de diálogo
+            dialog_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+            dialog_surface.fill(self.bg_color)
+            
+            # Borde
+            pygame.draw.rect(dialog_surface, self.border_color, (0, 0, self.width, self.height), 2, border_radius=10)
+            
+            # Dibujar retrato si existe
+            if self.portrait:
+                surface.blit(self.portrait, (self.x + 10, self.y + (self.height - self.portrait.get_height()) // 2))
+                text_start_x = 120
+            else:
+                text_start_x = 20
+            
+            # Dibujar nombre del hablante
+            if self.speaker:
+                speaker_surface = self.font.render(self.speaker, True, RED)
+                dialog_surface.blit(speaker_surface, (text_start_x, 10))
+                text_start_y = 40
+            else:
+                text_start_y = 20
+            
+            # Dibujar texto con animación de escritura
+            displayed_text = self.text[:self.display_index]
+            
+            # Ajuste de texto para que no se salga del cuadro
+            max_width = self.width - text_start_x - 20
+            words = displayed_text.split(' ')
+            lines = []
+            current_line = ""
+            
+            for word in words:
+                test_line = current_line + word + " "
+                if self.font.size(test_line)[0] < max_width:
+                    current_line = test_line
+                else:
+                    lines.append(current_line)
+                    current_line = word + " "
+            lines.append(current_line)
+            
+            # Dibujar líneas de texto
+            for i, line in enumerate(lines):
+                text_surface = self.font.render(line, True, self.text_color)
+                dialog_surface.blit(text_surface, (text_start_x, text_start_y + i * 30))
+            
+            # Indicador de continuar
+            if self.complete:
+                pygame.draw.polygon(dialog_surface, WHITE, 
+                                  [(self.width - 30, self.height - 20), 
+                                   (self.width - 10, self.height - 20), 
+                                   (self.width - 20, self.height - 10)])
+            
+            # Dibujar el cuadro de diálogo en la superficie principal
+            surface.blit(dialog_surface, (self.x, self.y))
+        
+        def handle_input(self, event):
+            if not self.visible:
+                return False
+                
+            if event.type == KEYDOWN:
+                if event.key == K_SPACE or event.key == K_RETURN or event.key == K_z:
+                    if self.complete:
+                        if self.next_dialog:
+                            dialog_text, speaker, portrait = self.next_dialog
+                            self.set_dialog(dialog_text, speaker, portrait)
+                            return True
+                        else:
+                            self.visible = False
+                            return True
+                    else:
+                        # Mostrar todo el texto inmediatamente
+                        self.display_index = len(self.text)
+                        self.complete = True
+                        return True
+            
+            return False
+    
+    # Funciones de respaldo
+    def load_dialogues(level):
+        return {"intro": [{"text": f"Nivel {level}! ¡Hora de aplastar humanos!", "speaker": "Killer Potato"}]}
+    
+    def show_cutscene(screen, level):
+        pass
+    
+    def show_tutorial(screen, level):
+        pass
+
+# Clase para efectos de disparo/ataque
+class AttackEffect:
+    def __init__(self, x, y, angle):
+        self.x = x
+        self.y = y
+        self.angle = angle
+        self.lifetime = 5  # Duración del efecto en frames
+        self.image = load_image("assets/images/items/attack_effect.png", (30, 15))
+        self.rotated_image = pygame.transform.rotate(self.image, -math.degrees(angle))
+        self.rect = self.rotated_image.get_rect(center=(x, y))
+    
+    def update(self):
+        self.lifetime -= 1
+    
+    def draw(self, screen):
+        screen.blit(self.rotated_image, self.rect.topleft)
+    
+    def is_finished(self):
+        return self.lifetime <= 0
+
+# Importar clases necesarias
+try:
+    from src.player import Player
+    from src.weapons import Projectile, ShockWave
+    from src.enemies import Enemy, create_random_enemy, create_boss
+    from src.levels import LevelManager
+except ImportError:
+    try:
+        from player import Player
+        from weapons import Projectile, ShockWave
+        from enemies import Enemy, create_random_enemy, create_boss
+        from levels import LevelManager
+    except ImportError as e:
+        print(f"Error al importar módulos del juego: {e}")
+        # Clases básicas de respaldo en caso de error
+        class Player:
+            def __init__(self):
+                self.x = WIDTH // 2
+                self.y = HEIGHT // 2
+                self.radius = 20
+                self.speed = 5
+                self.health = 100
+                self.max_health = 100
+                self.damage_multiplier = 1.0
+                self.score = 0
+                self.level = 1
+                self.current_weapon = 0
+                self.facing_right = True
+                
+                # Cargar imágenes del jugador
+                self.image_right = load_image("assets/images/characters/killer_potato_right.png", (50, 50))
+                self.image_left = load_image("assets/images/characters/killer_potato_left.png", (50, 50))
+                
+                # Configurar armas
+                self.weapons = [
+                    {
+                        "name": "Tenedor", 
+                        "damage": 25, 
+                        "ammo": 30, 
+                        "max_ammo": 30, 
+                        "reload_time": 15, 
+                        "reload_counter": 0, 
+                        "fire_rate": 20, 
+                        "fire_counter": 0,
+                        "image_right": load_image("assets/images/items/fork_right.png", (40, 20)),
+                        "image_left": load_image("assets/images/items/fork_left.png", (40, 20)),
+                        "hud_image": load_image("assets/images/ui/fork_hud.png", (80, 40))
+                    }
+                ]
+                self.is_reloading = False
+                self.can_shoot = True
+                
+                # Cargar HUD
+                self.health_bar = load_image("assets/images/ui/health_bar.png", (250, 70))
+                self.ammo_bar = load_image("assets/images/ui/ammo_bar.png", (250, 70))
+                self.score_display = load_image("assets/images/ui/score_display.png", (150, 50))
+                
+                # Obtener rectángulo para colisiones
+                self.rect = self.image_right.get_rect()
+                self.update_rect()
+            
+            def update_rect(self):
+                self.rect.center = (self.x, self.y)
+            
+            def draw(self, screen):
+                screen.blit(self.image_right if self.facing_right else self.image_left, 
+                            (self.x - 25, self.y - 25))
+            
+            def move(self, dx, dy, obstacles=None, level_bounds=None):
+                self.x += dx * self.speed
+                self.y += dy * self.speed
+                self.x = max(20, min(self.x, WIDTH - 20))
+                self.y = max(20, min(self.y, HEIGHT - 20))
+                self.update_rect()
+            
+            def attack(self):
+                return None, None
+            
+            def reload(self):
+                pass
+            
+            def update(self):
+                pass
+            
+            def switch_weapon(self, direction):
+                pass
+            
+            def take_damage(self, damage):
+                self.health -= damage
+                if self.health < 0:
+                    self.health = 0
+            
+            def draw_hud(self, screen, enemies_to_spawn=0, enemies_count=0):
+                screen.blit(self.health_bar, (20, 20))
+                pygame.draw.rect(screen, GREEN, (70, 50, 150 * (self.health / self.max_health), 25))
+                
+                screen.blit(self.score_display, (WIDTH - 170, 20))
+                score_text = font.render(f"{self.score}", True, RED)
+                screen.blit(score_text, (WIDTH - 110, 35))
+                
+                level_text = font.render(f"NIVEL: {self.level}", True, WHITE)
+                screen.blit(level_text, (WIDTH - 150, 80))
+        
+        class Projectile:
+            def __init__(self, x, y, angle, damage):
+                self.x = x
+                self.y = y
+                self.speed = 12
+                self.dx = math.cos(angle) * self.speed
+                self.dy = math.sin(angle) * self.speed
+                self.radius = 5
+                self.damage = damage
+                self.angle = angle
+                self.rect = pygame.Rect(x - 5, y - 5, 10, 10)
+            
+            def update(self):
+                self.x += self.dx
+                self.y += self.dy
+                self.rect.center = (self.x, self.y)
+            
+            def draw(self, screen):
+                pygame.draw.circle(screen, RED, (int(self.x), int(self.y)), self.radius)
+            
+            def is_offscreen(self):
+                return (self.x < 0 or self.x > WIDTH or self.y < 0 or self.y > HEIGHT)
+        
+        class ShockWave:
+            def __init__(self, x, y, damage, max_radius, wave_color=None):
+                self.x = x
+                self.y = y
+                self.damage = damage
+                self.current_radius = 10
+                self.max_radius = max_radius
+                self.growth_speed = 5
+                self.alpha = 200
+                self.fade_speed = 2
+                self.hits = set()
+            
+            def update(self):
+                self.current_radius += self.growth_speed
+                if self.current_radius > self.max_radius * 0.5:
+                    self.growth_speed = max(1, self.growth_speed * 0.95)
+                    self.alpha -= self.fade_speed
+                    self.fade_speed *= 1.05
+                return self.is_finished()
+            
+            def draw(self, screen):
+                pygame.draw.circle(screen, BLUE, (int(self.x), int(self.y)), int(self.current_radius), 2)
+            
+            def check_collision(self, entity_rect):
+                return False
+            
+            def is_finished(self):
+                return self.current_radius >= self.max_radius or self.alpha <= 0
+        
+        class Enemy:
+            def __init__(self, level, enemy_type="human"):
+                self.radius = 20
+                self.speed = 1 + level * 0.2
+                self.health = 50 + level * 10
+                self.max_health = 50 + level * 10
+                self.damage = 5 + level
+                self.attack_cooldown = 50
+                self.attack_counter = 0
+                self.facing_right = True
+                self.hit_effect = 0
+                self.enemy_type = enemy_type
+                
+                self.x = random.randint(50, WIDTH - 50)
+                self.y = random.randint(50, HEIGHT - 50)
+                
+                self.image = load_image("assets/images/characters/human_right.png", (50, 50))
+                self.rect = self.image.get_rect(center=(self.x, self.y))
+            
+            def update(self, player_x, player_y):
+                dx = player_x - self.x
+                dy = player_y - self.y
+                dist = math.sqrt(dx**2 + dy**2)
+                
+                if dist > 0:
+                    dx /= dist
+                    dy /= dist
+                
+                self.x += dx * self.speed
+                self.y += dy * self.speed
+                self.facing_right = dx > 0
+                self.rect.center = (self.x, self.y)
+                
+                if self.attack_counter > 0:
+                    self.attack_counter -= 1
+                
+                if self.hit_effect > 0:
+                    self.hit_effect -= 1
+            
+            def draw(self, screen):
+                pygame.draw.circle(screen, RED, (int(self.x), int(self.y)), self.radius)
+            
+            def take_damage(self, damage):
+                self.health -= damage
+                self.hit_effect = 5
+                return self.is_dead()
+            
+            def is_dead(self):
+                return self.health <= 0
+            
+            def can_attack(self):
+                return self.attack_counter <= 0
+            
+            def attack(self, player):
+                if self.can_attack():
+                    player.take_damage(self.damage)
+                    self.attack_counter = self.attack_cooldown
+                    return True
+                return False
+        
+        def create_random_enemy(level):
+            return Enemy(level)
+        
+        def create_boss(level):
+            return None
+        
+        class LevelManager:
+            def __init__(self):
+                self.current_level = None
+                
+            def load_level(self, level_number):
+                # Crear nivel básico
+                self.current_level = type('Level', (), {})()
+                self.current_level.name = f"Nivel {level_number}"
+                self.current_level.obstacles = []
+                self.current_level.enemies_to_spawn = 10 + level_number * 3
+                self.current_level.linear = False
+                self.current_level.scroll_offset_x = 0
+                self.current_level.scroll_offset_y = 0
+                self.current_level.scroll_width = WIDTH
+                self.current_level.get_level_bounds = lambda: (0, 0, WIDTH, HEIGHT)
+                self.current_level.get_exit_point = lambda: (WIDTH - 50, HEIGHT // 2)
+                self.current_level.get_spawn_point = lambda: (random.randint(50, WIDTH - 50), random.randint(50, HEIGHT - 50))
+                self.current_level.get_adjusted_player_position = lambda x, y: (x, y)
+                self.current_level.draw = lambda screen, offset_x, offset_y: None
+                self.current_level.update = lambda player_x, player_y: None
+                self.current_level.mark_completed = lambda: None
+                
+                return self.current_level
+                
+            def next_level(self):
+                return self.load_level(1)
+                
+            def show_level_intro(self, screen):
+                pass
 
 # Función para dibujar la pantalla de pausa
 def draw_pause_screen(screen):
@@ -886,7 +645,6 @@ def main():
     
     # Intentar cargar el sistema de niveles
     try:
-        from src.levels import LevelManager
         level_manager = LevelManager()
         current_level = level_manager.load_level(1)
         use_level_system = True
@@ -894,11 +652,11 @@ def main():
         print(f"Sistema de niveles cargado correctamente. Nivel actual: {current_level.name}")
         
         # Valores iniciales desde el nivel
-        level_width = current_level.scroll_width if current_level.linear else WIDTH
+        level_width = current_level.scroll_width if hasattr(current_level, 'linear') and current_level.linear else WIDTH
         level_height = HEIGHT
         enemies_in_level = current_level.enemies_to_spawn
         enemies_to_spawn = enemies_in_level
-        obstacles = current_level.obstacles
+        obstacles = current_level.obstacles if hasattr(current_level, 'obstacles') else []
         level_obstacles = obstacles
         
         # Mostrar introducción del nivel
@@ -953,7 +711,6 @@ def main():
         # Intentar cargar diálogos del nivel actual
         try:
             if use_level_system:
-                from dialogue import load_dialogues
                 level_dialogues = load_dialogues(1)
                 intro_dialog = level_dialogues.get("intro", [])[0]
                 
@@ -1019,8 +776,16 @@ def main():
                         if use_level_system:
                             # Cargar siguiente nivel
                             current_level = level_manager.next_level()
-                            enemies_in_level = current_level.enemies_to_spawn
-                            obstacles = current_level.obstacles
+                            if hasattr(current_level, 'enemies_to_spawn'):
+                                enemies_in_level = current_level.enemies_to_spawn
+                            else:
+                                enemies_in_level = 5 + level * 2
+                                
+                            if hasattr(current_level, 'obstacles'):
+                                obstacles = current_level.obstacles
+                            else:
+                                obstacles = []
+                                
                             level_obstacles = obstacles
                             
                             # Mostrar introducción del nuevo nivel
@@ -1044,8 +809,16 @@ def main():
                     if use_level_system:
                         # Reiniciar desde el nivel 1
                         current_level = level_manager.load_level(1)
-                        enemies_in_level = current_level.enemies_to_spawn
-                        obstacles = current_level.obstacles
+                        if hasattr(current_level, 'enemies_to_spawn'):
+                            enemies_in_level = current_level.enemies_to_spawn
+                        else:
+                            enemies_in_level = 5
+                            
+                        if hasattr(current_level, 'obstacles'):
+                            obstacles = current_level.obstacles
+                        else:
+                            obstacles = []
+                            
                         level_obstacles = obstacles
                     else:
                         enemies_in_level = 5
@@ -1122,7 +895,7 @@ def main():
             dy *= 0.7071
         
         # Actualizar posición del jugador dependiendo del sistema de niveles
-        if use_level_system:
+        if use_level_system and hasattr(current_level, 'get_level_bounds') and hasattr(current_level, 'get_adjusted_player_position'):
             # Ajustar posición para niveles lineales
             player.move(dx, dy, level_obstacles, current_level.get_level_bounds())
             player_x, player_y = current_level.get_adjusted_player_position(player.x, player.y)
@@ -1130,7 +903,8 @@ def main():
             player.update_rect()
             
             # Actualizar nivel
-            current_level.update(player.x, player.y)
+            if hasattr(current_level, 'update'):
+                current_level.update(player.x, player.y)
         else:
             # Movimiento normal para modo arena
             player.move(dx, dy, obstacles)
@@ -1149,32 +923,101 @@ def main():
             projectile.update()
             
             # Comprobar colisión con obstáculos
-            if use_level_system:
+            if use_level_system and level_obstacles:
                 for obstacle in level_obstacles:
                     # Ajustar posición del obstáculo para niveles lineales
-                    if current_level.linear:
+                    if hasattr(current_level, 'linear') and current_level.linear and hasattr(obstacle, 'rect'):
                         obstacle_x = obstacle.x - current_level.scroll_offset_x
                         obstacle_y = obstacle.y
                         obstacle_rect = pygame.Rect(obstacle_x, obstacle_y, obstacle.width, obstacle.height)
-                    else:
+                    elif hasattr(obstacle, 'rect'):
                         obstacle_rect = obstacle.rect
+                    else:
+                        # Si el obstáculo no tiene rect, crear uno básico
+                        obstacle_rect = pygame.Rect(obstacle.x, obstacle.y, 50, 50)
                     
-                    if obstacle_rect.collidepoint(projectile.x, projectile.y):
+                    if hasattr(projectile, 'rect'):
+                        collision = obstacle_rect.colliderect(projectile.rect)
+                    else:
+                        # Si el proyectil no tiene rect, comprobar con círculo
+                        collision = obstacle_rect.collidepoint(projectile.x, projectile.y)
+                        
+                    if collision:
                         projectiles.remove(projectile)
                         
                         # Si el obstáculo es destructible, dañarlo
-                        if obstacle.destructible:
-                            if obstacle.take_damage(projectile.damage):
-                                level_obstacles.remove(obstacle)
+                        if hasattr(obstacle, 'destructible') and obstacle.destructible:
+                            if hasattr(obstacle, 'take_damage'):
+                                if obstacle.take_damage(projectile.damage):
+                                    level_obstacles.remove(obstacle)
                         break
             
             # Eliminar proyectiles fuera de pantalla
-            if projectile.is_offscreen():
+            if hasattr(projectile, 'is_offscreen'):
+                if projectile.is_offscreen():
+                    projectiles.remove(projectile)
+            # Alternativa si no tiene método is_offscreen
+            elif projectile.x < 0 or projectile.x > WIDTH or projectile.y < 0 or projectile.y > HEIGHT:
                 projectiles.remove(projectile)
+        
+        # Actualizar enemigos y comprobar colisiones
+        for enemy in enemies[:]:
+            # En niveles lineales, ajustar posición de enemigos
+            if use_level_system and hasattr(current_level, 'linear') and current_level.linear:
+                enemy.update(player.x, player.y, level_obstacles)
+            else:
+                enemy.update(player.x, player.y, obstacles)
+            
+            # Comprobar colisión con jugador
+            if hasattr(player, 'rect') and hasattr(enemy, 'rect'):
+                if player.rect.colliderect(enemy.rect):
+                    enemy.attack(player)
+            else:
+                # Alternativa si no tienen rectángulos
+                dist = math.sqrt((player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2)
+                if dist < player.radius + enemy.radius:
+                    enemy.attack(player)
+            
+            # Comprobar colisión con proyectiles
+            for projectile in projectiles[:]:
+                if projectile in projectiles:  # Verificar que aún existe
+                    if hasattr(enemy, 'rect') and hasattr(projectile, 'rect'):
+                        if enemy.rect.colliderect(projectile.rect):
+                            enemy.take_damage(projectile.damage)
+                            projectiles.remove(projectile)
+                            break
+                    else:
+                        # Alternativa si no tienen rectángulos
+                        dist = math.sqrt((projectile.x - enemy.x) ** 2 + (projectile.y - enemy.y) ** 2)
+                        if dist < enemy.radius + projectile.radius:
+                            enemy.take_damage(projectile.damage)
+                            if projectile in projectiles:  # Verificar que aún existe
+                                projectiles.remove(projectile)
+                            break
+            
+            # Eliminar enemigos muertos
+            if enemy.is_dead():
+                # Posibilidad de soltar pickup
+                pickup_chance = 0.3  # 30% de probabilidad base
+                
+                # En niveles con sistema, usar configuración de dificultad
+                if use_level_system and 'DIFFICULTY_SETTINGS' in globals():
+                    difficulty_config = DIFFICULTY_SETTINGS.get(DIFFICULTY, DIFFICULTY_SETTINGS["normal"])
+                    pickup_chance = difficulty_config.get("pickup_spawn_chance", 0.3)
+                
+                if random.random() < pickup_chance:
+                    pickup_type = random.choice(["health", "ammo", "speed"])
+                    # Usar clase Pickup definida en este archivo
+                    pickups.append(Pickup(enemy.x, enemy.y, pickup_type))
+                
+                player.score += 10
+                enemy_kills += 1
+                enemies.remove(enemy)
         
         # Actualizar pickups
         for pickup in pickups[:]:
-            pickup.update()
+            if hasattr(pickup, 'update'):
+                pickup.update()
             
             # Comprobar si el jugador recoge el pickup
             if pickup.is_collected(player):
@@ -1186,67 +1029,22 @@ def main():
                 except:
                     pass
                 pickups.remove(pickup)
-            elif pickup.is_expired():
+            elif hasattr(pickup, 'is_expired') and pickup.is_expired():
                 pickups.remove(pickup)
-        
-        # Actualizar enemigos y comprobar colisiones
-        for enemy in enemies[:]:
-            # En niveles lineales, ajustar posición de enemigos
-            if use_level_system and current_level.linear:
-                enemy.update(player.x, player.y, level_obstacles)
-            else:
-                enemy.update(player.x, player.y, obstacles)
-            
-            # Comprobar colisión con jugador
-            if player.rect.colliderect(enemy.rect):
-                enemy.attack(player)
-            
-            # Comprobar colisión con proyectiles
-            for projectile in projectiles[:]:
-                if enemy.rect.collidepoint(projectile.x, projectile.y):
-                    enemy.take_damage(projectile.damage)
-                    projectiles.remove(projectile)
-                    break
-            
-            # Eliminar enemigos muertos
-            if enemy.is_dead():
-                # Posibilidad de soltar pickup
-                pickup_chance = 0.3  # 30% de probabilidad base
-                
-                # En niveles con sistema, usar configuración de dificultad
-                if use_level_system:
-                    difficulty_config = DIFFICULTY_SETTINGS.get(DIFFICULTY, DIFFICULTY_SETTINGS["normal"])
-                    pickup_chance = difficulty_config.get("pickup_spawn_chance", 0.3)
-                
-                if random.random() < pickup_chance:
-                    pickup_type = random.choice(["health", "ammo", "speed"])
-                    pickups.append(Pickup(enemy.x, enemy.y, pickup_type))
-                
-                player.score += 10
-                enemy_kills += 1
-                enemies.remove(enemy)
         
         # Generar enemigos
         if not level_complete and enemies_to_spawn > 0:
             if spawn_counter <= 0:
                 # Elegir tipo de enemigo basado en nivel
-                if level >= 3 and random.random() < 0.3:
-                    enemy_type = "robot"
-                elif level >= 5 and random.random() < 0.2:
-                    enemy_type = "chef"
-                else:
-                    enemy_type = "human"
+                enemy = create_random_enemy(level)
                 
                 # En niveles con sistema, usar punto de spawn del nivel
-                if use_level_system:
+                if use_level_system and hasattr(current_level, 'get_spawn_point'):
                     spawn_x, spawn_y = current_level.get_spawn_point()
-                    enemy = Enemy(level, enemy_type)
                     enemy.x = spawn_x
                     enemy.y = spawn_y
-                    enemy.update_rect()
-                else:
-                    # En modo arena, usar puntos de spawn predeterminados
-                    enemy = Enemy(level, enemy_type)
+                    if hasattr(enemy, 'update_rect'):
+                        enemy.update_rect()
                     
                 enemies.append(enemy)
                 enemies_to_spawn -= 1
@@ -1257,31 +1055,32 @@ def main():
         # Comprobar condiciones de victoria en sistema de niveles
         if use_level_system and not level_complete:
             # Verificar si el jugador está en el punto de salida
-            exit_x, exit_y = current_level.get_exit_point()
-            distance_to_exit = math.sqrt((player.x - exit_x)**2 + (player.y - exit_y)**2)
-            
-            # Nivel completado si no hay más enemigos y se llega a la salida
-            if enemies_to_spawn <= 0 and len(enemies) == 0 and distance_to_exit < 50:
-                level_complete = True
-                level_timer = 180  # Reiniciar temporizador entre niveles
+            if hasattr(current_level, 'get_exit_point'):
+                exit_x, exit_y = current_level.get_exit_point()
+                distance_to_exit = math.sqrt((player.x - exit_x)**2 + (player.y - exit_y)**2)
                 
-                # Marcar nivel como completado
-                current_level.mark_completed()
-                
-                # Mostrar diálogo de nivel completado
-                try:
-                    from dialogue import load_dialogues
-                    level_dialogues = load_dialogues(level)
-                    complete_dialog = level_dialogues.get("level_complete", [])[0]
+                # Nivel completado si no hay más enemigos y se llega a la salida
+                if enemies_to_spawn <= 0 and len(enemies) == 0 and distance_to_exit < 50:
+                    level_complete = True
+                    level_timer = 180  # Reiniciar temporizador entre niveles
                     
-                    dialog.set_dialog(
-                        complete_dialog.get("text", f"¡Nivel {level} completado!"), 
-                        complete_dialog.get("speaker", "Sistema"), 
-                        complete_dialog.get("portrait", None),
-                        complete_dialog.get("position", "top")
-                    )
-                except Exception as e:
-                    print(f"Error al cargar diálogo de nivel completado: {e}")
+                    # Marcar nivel como completado
+                    if hasattr(current_level, 'mark_completed'):
+                        current_level.mark_completed()
+                    
+                    # Mostrar diálogo de nivel completado
+                    try:
+                        level_dialogues = load_dialogues(level)
+                        complete_dialog = level_dialogues.get("level_complete", [])[0]
+                        
+                        dialog.set_dialog(
+                            complete_dialog.get("text", f"¡Nivel {level} completado!"), 
+                            complete_dialog.get("speaker", "Sistema"), 
+                            complete_dialog.get("portrait", None),
+                            complete_dialog.get("position", "top")
+                        )
+                    except Exception as e:
+                        print(f"Error al cargar diálogo de nivel completado: {e}")
         else:
             # En modo arena, completar nivel cuando no quedan enemigos
             if not level_complete and enemies_to_spawn <= 0 and len(enemies) == 0:
@@ -1303,7 +1102,7 @@ def main():
                 pass
         
         # Dibujar todo
-        if use_level_system:
+        if use_level_system and hasattr(current_level, 'draw'):
             current_level.draw(screen, current_level.scroll_offset_x, current_level.scroll_offset_y)
             
             # Dibujar punto de salida si nivel está casi completado
